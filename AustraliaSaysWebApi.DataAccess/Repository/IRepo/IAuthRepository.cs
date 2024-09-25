@@ -10,6 +10,7 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.IRepo
     public interface IAuthRepository
     {
         Task<ReturnMessage> Register(RegisterData model, string password);
+        Task<ReturnMessage> RegisterUser(string email, string password);
         Task<ReturnMessage> Login(string email, string password);
     }
 }

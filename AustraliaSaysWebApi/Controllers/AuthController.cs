@@ -65,5 +65,27 @@ namespace AustraliaSaysWebApi.Controllers
             }
         }
 
+        [HttpPost("Register-User")]
+        public async Task<IActionResult> RegisterUser( RegisterUser model)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+                var response = await _unitofwork.Auth.RegisterUser(model.Email, model.Password);
+                if (response.Succeeded == false)
+                {
+                    return BadRequest(response.Message);
+                }
+                return Ok(response);
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
     }
 }

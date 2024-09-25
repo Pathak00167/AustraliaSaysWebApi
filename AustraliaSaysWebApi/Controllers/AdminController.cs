@@ -1,4 +1,5 @@
 ﻿using AustraliaSaysWebApi.DataAccess.DTOs;
+using AustraliaSaysWebApi.DataAccess.Entity;
 using AustraliaSaysWebApi.DataAccess.Repository.IRepo;
 using AustraliaSaysWebApi.DataAccess.Repository.Repo;
 using Microsoft.AspNetCore.Authorization;
@@ -141,6 +142,48 @@ namespace AustraliaSaysWebApi.Controllers
 
         #endregion
 
+
+        #region Articles
+        [HttpPost("AddArticle")]
+        public IActionResult Article([FromForm]ArticleDto dto)
+        {
+            try
+            {
+                if (dto == null || dto.Categoryid == 0)
+                {
+                    return BadRequest("Invalid article data");
+                }
+
+                var category = _unitofwork.Admin.GetCategoryById(dto.Categoryid);
+                if (category == null)
+                {
+                    return NotFound("Category not found");
+                }
+                var addedArticle = _unitofwork.Admin.AddArticle(dto);
+                return Ok();
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
+
+        [HttpGet("ArticlesList")]
+        public IActionResult ArticlesList()
+        {
+            try
+            {
+                var response = _unitofwork.Admin.GetArticlesList();
+                return Ok(response);
+            }
+            catch (Exception)
+            {
+
+                return BadRequest("Some Thing Went Wrong Please Try Again later");
+            }
+        }
+        #endregion
 
 
     }

@@ -14,10 +14,16 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.IRepo
         ReturnMessage AddCategory(CategoryDto category);
         List<Category> GetCategoriesList();
         ReturnMessage DeleteCategory(int Id);
+        Category GetCategoryById(int Id);
         #endregion
 
         List<UsersDto> GetUsersList();
         List<Notification> GetNotificarionsList();
         bool MarkAllNotificationsAsSeen();
+
+        #region Articles
+        ReturnMessage AddArticle(ArticleDto article);
+        List<ArticlesList> GetArticlesList();
+        #endregion
     }
 }

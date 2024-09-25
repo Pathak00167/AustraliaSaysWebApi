@@ -2,12 +2,15 @@ using AustraliaSaysWebApi.DataAccess.Data;
 using AustraliaSaysWebApi.DataAccess.Entity;
 using AustraliaSaysWebApi.DataAccess.Repository.IRepo;
 using AustraliaSaysWebApi.DataAccess.Repository.Repo;
+using EcomWeb.Utility.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Net;
 using System.Text;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,13 +18,15 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
+
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "AustraliaSays", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "ChatApp API", Version = "v1" });
 
     // Add JWT token authentication configuration to Swagger
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -58,6 +63,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
         );
     }));
 
+
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
@@ -67,7 +73,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowAll",
         builder =>
         {
-            builder.WithOrigins("http://localhost:4200")
+            builder.AllowAnyOrigin()
                    .AllowAnyMethod()
                    .AllowAnyHeader();
         });
@@ -75,6 +81,12 @@ builder.Services.AddCors(options =>
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var key = Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]);
+
+// Register the email service
+builder.Services.AddSingleton<IEmailService, EmailService>();
+
+// Configure SMTP settings from configuration
+var smtpSettings = builder.Configuration.GetSection("SmtpSettings");
 
 builder.Services.AddAuthentication(options =>
 {
@@ -95,9 +107,11 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(key)
     };
 });
+builder.Services.AddScoped<JwtService>();
+builder.Services.AddScoped<EmailService>();
+
 builder.Services.AddAuthorization();
 
-builder.Services.AddScoped<JwtService>();
 
 var app = builder.Build();
 
@@ -114,13 +128,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
-
 app.UseCors("AllowAll");
-app.UseAuthentication();
-
+app.UseAuthentication(); // Added authentication middleware
 app.UseAuthorization();
-
 
 app.MapControllers();
 
