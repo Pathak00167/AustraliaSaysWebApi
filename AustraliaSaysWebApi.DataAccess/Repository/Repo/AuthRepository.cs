@@ -2,6 +2,7 @@
 using AustraliaSaysWebApi.DataAccess.DTOs;
 using AustraliaSaysWebApi.DataAccess.Entity;
 using AustraliaSaysWebApi.DataAccess.Repository.IRepo;
+using EcomWeb.Utility.Services;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using System;
@@ -22,14 +23,16 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.Repo
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _hostingEnvironment;
         private readonly JwtService _jwtService;
+        private readonly EmailService _emailService;
 
 
-        public AuthRepository(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IWebHostEnvironment webHostEnvironment, JwtService jwtService,ApplicationDbContext context)
+        public AuthRepository(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IWebHostEnvironment webHostEnvironment, JwtService jwtService,ApplicationDbContext context,EmailService emailService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _hostingEnvironment = webHostEnvironment;
             _jwtService = jwtService;   
+         _emailService = emailService;
             _context = context;
         }
         #endregion
@@ -88,7 +91,7 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.Repo
                     Email = model.Email,
                     UserName = model.Email,
                     PhoneNumber = model.PhoneNumber,
-                    Name = model.Name,
+                    FirstName = model.Name,
                 };
 
                 if (model.UserImage != null)
@@ -116,7 +119,7 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.Repo
 
 
                     string relativePath = Path.Combine("uploads", uniqueFileName);
-                    user.ProfilePicUrl = relativePath;
+                    user.ProfilePicture = relativePath;
                 }
 
                 var findUser = await _userManager.FindByEmailAsync(user.Email);
@@ -151,6 +154,63 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.Repo
 
                 return new ReturnMessage { Succeeded = true, Message = "Account Created SuccessFully Please Login" };
                 }
+            catch (Exception ex)
+            {
+                return new ReturnMessage { Succeeded = false, Message = "An error occurred. Please try again later.", Token = null };
+            }
+        }
+
+        public async Task<ReturnMessage> RegisterUser(string email, string password)
+        {
+            try
+            {
+                var user = new ApplicationUser
+                {
+                    Email = email,
+                    UserName = email,
+
+                };
+
+                var findUser = await _userManager.FindByEmailAsync(user.Email);
+                if (findUser != null)
+                {
+                    return new ReturnMessage { Succeeded = false, Message = "User with this email already exists", Token = null };
+                }
+
+
+                var createUser = await _userManager.CreateAsync(user, password);
+                if (!createUser.Succeeded)
+                {
+                    return new ReturnMessage { Succeeded = false, Message = "User creation failed. Please try again later.", Token = null };
+                }
+
+                var addToRole = await _userManager.AddToRoleAsync(user, "User");
+                if (!addToRole.Succeeded)
+                {
+                    return new ReturnMessage { Succeeded = false, Message = "Failed to add user to role. Please try again later.", Token = null };
+                }
+                var otp = new Random().Next(100000, 999999).ToString();
+                var setToken = await _userManager.SetAuthenticationTokenAsync(user, "Default", "OTP", otp);
+                if (!setToken.Succeeded)
+                {
+                    return new ReturnMessage { Succeeded = false, Message = "Failed to set OTP. Please try again later.", Token = null };
+                }
+
+                await _emailService.SendEmailAsync(user.Email,"ChatApp Account Verification", $"Your OTP is: {otp}");
+                var notificatiodata = new Notification
+                {
+                    UserId = user.Id,
+                    Message = $" {user.Email} has created a new account",
+                    Type = "User",
+                    Time = DateTime.Now,
+                    Seen = false
+
+                };
+                var addNotification = _context.Notification.Add(notificatiodata);
+                _context.SaveChanges();
+                return new ReturnMessage { Succeeded = true, Message = "OTP sent to your phone number.", Token = null };
+            }
+
             catch (Exception ex)
             {
                 return new ReturnMessage { Succeeded = false, Message = "An error occurred. Please try again later.", Token = null };

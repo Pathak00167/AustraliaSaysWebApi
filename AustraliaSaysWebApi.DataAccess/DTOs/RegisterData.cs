@@ -27,4 +27,14 @@ namespace AustraliaSaysWebApi.DataAccess.DTOs
         [PasswordPropertyText]
         public string Password { get; set; }
     }
+
+    public class RegisterUser
+    {
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; }
+        [Required]
+        [PasswordPropertyText]
+        public string Password { get; set; }
+    }
 }

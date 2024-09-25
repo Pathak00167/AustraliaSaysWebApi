@@ -2,6 +2,7 @@
 using AustraliaSaysWebApi.DataAccess.DTOs;
 using AustraliaSaysWebApi.DataAccess.Entity;
 using AustraliaSaysWebApi.DataAccess.Repository.IRepo;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
@@ -16,10 +17,12 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.Repo
         #region Constructor
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
-        public AdminRepository(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+        private readonly IWebHostEnvironment _hostingEnvironment;
+        public AdminRepository(ApplicationDbContext context, UserManager<ApplicationUser> userManager,IWebHostEnvironment hostEnvironment)
         {
             _context = context;
             _userManager = userManager;
+            _hostingEnvironment = hostEnvironment;
         }
 
         #endregion
@@ -65,6 +68,16 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.Repo
             return new ReturnMessage { Succeeded = true, Message = "Category Deleted Successfully" };
         }
 
+        public Category  GetCategoryById(int Id)
+        {
+            var findCategory = _context.Category.Find(Id);
+            if (findCategory == null)
+            {
+               return null;
+            }
+            return findCategory;
+        }
+
         public List<Category> GetCategoriesList()
         {
             var list = _context.Category.ToList();
@@ -100,7 +113,7 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.Repo
                 Email = user.Email,
                 Phonenumber = user.PhoneNumber,
                 Name = user.UserName, 
-                ImageUrl = user.ProfilePicUrl 
+                ImageUrl = user.ProfilePicture 
             }).ToList();
 
             return usersDto;
@@ -133,6 +146,77 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.Repo
         }
 
 
+        #endregion
+
+
+        #region Article
+        public ReturnMessage AddArticle(ArticleDto article)
+        {
+            try
+            {
+                var articles = new Articles
+                {
+                    ArticleTitle=article.ArticleTitle,
+                    ArticleDescription=article.Description,
+                    CategoryId=article.Categoryid,
+
+                };
+
+                if (article.ArticleImage != null)
+                {
+
+                    string uploadsFolder = Path.Combine(_hostingEnvironment.WebRootPath, "uploads");
+
+
+                    if (!Directory.Exists(uploadsFolder))
+                    {
+                        Directory.CreateDirectory(uploadsFolder);
+                    }
+
+
+                    string uniqueFileName = Guid.NewGuid().ToString() + "_" + article.ArticleImage.FileName;
+
+
+                    string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                         article.ArticleImage.CopyToAsync(stream);
+                    }
+
+
+                    string relativePath = Path.Combine("uploads", uniqueFileName);
+                    articles.ArticleImage = relativePath;
+                }
+                _context.Articles.Add(articles);
+                _context.SaveChanges();
+                return new ReturnMessage { Succeeded = true, Message = "Article Added Successfully", Token = null };
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
+
+        public List<ArticlesList> GetArticlesList()
+        {
+            var articles = (from article in _context.Articles
+                            join category in _context.Category
+                            on article.CategoryId equals category.Id
+                            select new ArticlesList
+                            {
+                                ArticleId = article.ArticleId,
+                                ArticleTitle = article.ArticleTitle,
+                                Description = article.ArticleDescription,
+                                CategoryId = article.CategoryId,
+                                CategoryName = category.CategoryName,
+                                ArticleImage = article.ArticleImage
+                            }).ToList();
+
+            return articles;
+        }
         #endregion
     }
 }

@@ -1,6 +1,7 @@
 ﻿using AustraliaSaysWebApi.DataAccess.Data;
 using AustraliaSaysWebApi.DataAccess.Entity;
 using AustraliaSaysWebApi.DataAccess.Repository.IRepo;
+using EcomWeb.Utility.Services;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using System;
@@ -18,20 +19,21 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.Repo
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly ApplicationDbContext _dbcontext;
         private readonly JwtService jwtService;
+        private readonly EmailService _emailService;
         private readonly IWebHostEnvironment _hostingEnvironment;
       
 
 
-        public UnitOfWork(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, ApplicationDbContext context,JwtService _jwtService, IWebHostEnvironment webHostEnvironment)
+        public UnitOfWork(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, ApplicationDbContext context,JwtService _jwtService, IWebHostEnvironment webHostEnvironment,EmailService emailService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _dbcontext = context;
-           
             jwtService = _jwtService;
+            _emailService = emailService;
             _hostingEnvironment = webHostEnvironment;
-            Auth = new AuthRepository(_userManager, _signInManager, _hostingEnvironment, _jwtService,_dbcontext);
-            Admin = new AdminRepository(_dbcontext,_userManager);
+            Auth = new AuthRepository(_userManager, _signInManager, _hostingEnvironment, _jwtService,_dbcontext,_emailService);
+            Admin = new AdminRepository(_dbcontext,_userManager,_hostingEnvironment);
 
 
         }
