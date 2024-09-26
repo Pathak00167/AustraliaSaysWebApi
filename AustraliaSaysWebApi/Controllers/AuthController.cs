@@ -16,7 +16,7 @@ namespace AustraliaSaysWebApi.Controllers
         private readonly IUnitOfWork _unitofwork;
         public AuthController(IUnitOfWork unitOfWork)
         {
-                _unitofwork = unitOfWork;
+            _unitofwork = unitOfWork;
         }
         #endregion
 
@@ -30,7 +30,7 @@ namespace AustraliaSaysWebApi.Controllers
                     return BadRequest(ModelState);
                 }
                 var loginTry = await _unitofwork.Auth.Login(model.Email, model.Password);
-                if(loginTry.Succeeded==false)
+                if (loginTry.Succeeded == false)
                 {
                     return BadRequest(loginTry.Message);
                 }
@@ -52,7 +52,7 @@ namespace AustraliaSaysWebApi.Controllers
                     return BadRequest(ModelState);
                 }
                 var response = await _unitofwork.Auth.Register(model, model.Password);
-                if(response.Succeeded==false)
+                if (response.Succeeded == false)
                 {
                     return BadRequest(response.Message);
                 }
@@ -66,7 +66,7 @@ namespace AustraliaSaysWebApi.Controllers
         }
 
         [HttpPost("Register-User")]
-        public async Task<IActionResult> RegisterUser( RegisterUser model)
+        public async Task<IActionResult> RegisterUser(RegisterUser model)
         {
             try
             {
@@ -77,6 +77,30 @@ namespace AustraliaSaysWebApi.Controllers
                 var response = await _unitofwork.Auth.RegisterUser(model.Email, model.Password);
                 if (response.Succeeded == false)
                 {
+                    return BadRequest(response.Message);
+                }
+                return Ok(response);
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
+
+        [HttpPost("Verify-Otp")]
+        public async Task<IActionResult> VerifyOtp(Verify_Otp request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+                var response =await _unitofwork.Auth.VerifyOtp(request.Email, request.Otp);
+                if (!response.Succeeded)
+                {
+
                     return BadRequest(response.Message);
                 }
                 return Ok(response);

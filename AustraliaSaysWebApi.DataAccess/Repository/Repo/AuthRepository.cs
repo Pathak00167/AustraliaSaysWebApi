@@ -208,9 +208,40 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.Repo
                 };
                 var addNotification = _context.Notification.Add(notificatiodata);
                 _context.SaveChanges();
-                return new ReturnMessage { Succeeded = true, Message = "OTP sent to your phone number.", Token = null };
+                return new ReturnMessage { Succeeded = true, Message = "OTP sent to your phone number.", Token = null,Role=addToRole.ToString() };
             }
 
+            catch (Exception ex)
+            {
+                return new ReturnMessage { Succeeded = false, Message = "An error occurred. Please try again later.", Token = null };
+            }
+        }
+
+        // Method to verify OTP
+        public async Task<ReturnMessage> VerifyOtp(string email, string otp)
+        {
+            try
+            {
+                var user = await _userManager.FindByEmailAsync(email);
+                if (user == null)
+                {
+                    return new ReturnMessage { Succeeded = false, Message = "User not found", Token = null };
+                }
+
+                var savedOtp = await _userManager.GetAuthenticationTokenAsync(user, "Default", "OTP");
+                if (savedOtp == null || savedOtp != otp)
+                {
+                    return new ReturnMessage { Succeeded = false, Message = "Invalid OTP", Token = null };
+                }
+
+                // OTP is valid, you can mark the user as verified, remove the token, etc.
+                await _userManager.RemoveAuthenticationTokenAsync(user, "Default", "OTP");
+                user.PhoneNumberConfirmed=true;
+             await   _userManager.UpdateAsync(user);
+                
+
+                return new ReturnMessage { Succeeded = true, Message = "OTP verified successfully", Token = null };
+            }
             catch (Exception ex)
             {
                 return new ReturnMessage { Succeeded = false, Message = "An error occurred. Please try again later.", Token = null };

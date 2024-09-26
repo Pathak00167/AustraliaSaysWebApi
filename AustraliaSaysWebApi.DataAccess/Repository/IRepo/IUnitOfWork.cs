@@ -10,6 +10,7 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.IRepo
     {
         IAuthRepository Auth { get; }
         IAdminRepository Admin { get; }
+        IUserRepository User { get; }
         void Save();
     }
 }
