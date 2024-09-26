@@ -1,7 +1,10 @@
-﻿using AustraliaSaysWebApi.DataAccess.Repository.IRepo;
+﻿using AustraliaSaysWebApi.DataAccess.DTOs;
+using AustraliaSaysWebApi.DataAccess.Repository.IRepo;
+using AustraliaSaysWebApi.DataAccess.Repository.Repo;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Update.Internal;
 
 namespace AustraliaSaysWebApi.Controllers
 {
@@ -16,6 +19,26 @@ namespace AustraliaSaysWebApi.Controllers
         {
             _unitofwork = unitOfWork;
         }
+
+        [HttpPatch("Update-UserProfile")]
+        public async Task<IActionResult> UpdateUser([FromForm]UpdateUserProfile userProfile)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var result = await _unitofwork.User.UpdateUserProfileAsync(userProfile);
+
+            if (!result.Succeeded)
+            {
+                return BadRequest(result.Message);
+            }
+
+            return Ok(result.Message);
+        }
+
+
         #endregion
     }
 }

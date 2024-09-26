@@ -34,7 +34,7 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.Repo
             _hostingEnvironment = webHostEnvironment;
             Auth = new AuthRepository(_userManager, _signInManager, _hostingEnvironment, _jwtService,_dbcontext,_emailService);
             Admin = new AdminRepository(_dbcontext,_userManager,_hostingEnvironment);
-
+            User = new UserRepository(_userManager, _signInManager, _dbcontext, _hostingEnvironment);
 
         }
 
@@ -42,6 +42,8 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.Repo
         public IAuthRepository Auth { get; private set; }
 
         public IAdminRepository Admin { get; private set; }
+
+        public IUserRepository User {  get; private set; }
 
         public void Save()
         {

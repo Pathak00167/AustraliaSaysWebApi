@@ -12,5 +12,6 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.IRepo
         Task<ReturnMessage> Register(RegisterData model, string password);
         Task<ReturnMessage> RegisterUser(string email, string password);
         Task<ReturnMessage> Login(string email, string password);
+        Task<ReturnMessage> VerifyOtp(string email, string otp);
     }
 }
