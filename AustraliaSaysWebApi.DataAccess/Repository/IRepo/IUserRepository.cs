@@ -1,4 +1,5 @@
 ﻿using AustraliaSaysWebApi.DataAccess.DTOs;
+using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,5 +11,6 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.IRepo
     public interface IUserRepository
     {
         Task<ReturnMessage> UpdateUserProfileAsync(UpdateUserProfile userProfile);
+       
     }
 }

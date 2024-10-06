@@ -43,8 +43,12 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.Repo
                 // Update user fields if provided
                 if (!string.IsNullOrEmpty(userProfile.UserName))
                 {
+                    var usernameExists = await _userManager.FindByNameAsync(userProfile.UserName);
+                    if (usernameExists != null)
+                    {
+                        return new ReturnMessage { Succeeded = false, Message = "Username is already taken" };
+                    }
                     user.UserName = userProfile.UserName;
-                    user.Email = userProfile.UserName; // Assuming username and email are the same
                 }
 
                 if (!string.IsNullOrEmpty(userProfile.Name))
@@ -80,5 +84,8 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.Repo
                 return new ReturnMessage { Succeeded = false, Message = "An error occurred while updating the profile" };
             }
         }
+
+      
+
     }
 }
