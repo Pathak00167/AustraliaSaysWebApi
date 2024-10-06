@@ -35,7 +35,7 @@ namespace AustraliaSaysWebApi.Controllers
                 return BadRequest(result.Message);
             }
 
-            return Ok(result.Message);
+            return Ok(new { result.Message});
         }
 
 

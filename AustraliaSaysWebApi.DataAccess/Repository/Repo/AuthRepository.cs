@@ -196,7 +196,7 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.Repo
                     return new ReturnMessage { Succeeded = false, Message = "Failed to set OTP. Please try again later.", Token = null };
                 }
 
-                await _emailService.SendEmailAsync(user.Email,"ChatApp Account Verification", $"Your OTP is: {otp}");
+                //await _emailService.SendEmailAsync(user.Email,"ChatApp Account Verification", $"Your OTP is: {otp}");
                 var notificatiodata = new Notification
                 {
                     UserId = user.Id,
@@ -238,9 +238,15 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.Repo
                 await _userManager.RemoveAuthenticationTokenAsync(user, "Default", "OTP");
                 user.PhoneNumberConfirmed=true;
              await   _userManager.UpdateAsync(user);
-                
+                // Retrieve the user's roles
+                var roles = await _userManager.GetRolesAsync(user);
 
-                return new ReturnMessage { Succeeded = true, Message = "OTP verified successfully", Token = null };
+                // Assuming the user has one role, you can use the first role
+                var userRole = roles.FirstOrDefault();
+                var token = _jwtService.GenerateToken(user.Id, userRole, user.UserName);
+
+
+                return new ReturnMessage { Succeeded = true, Message = "OTP verified successfully", Token = token,Role=userRole  };
             }
             catch (Exception ex)
             {
