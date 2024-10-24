@@ -190,6 +190,8 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.Repo
                     return new ReturnMessage { Succeeded = false, Message = "Failed to add user to role. Please try again later.", Token = null };
                 }
                 var otp = new Random().Next(100000, 999999).ToString();
+                var sendMail = _emailService.SendEmailAsync(email,"Account Registration", $"Your OTP is: {otp}");
+                
                 var setToken = await _userManager.SetAuthenticationTokenAsync(user, "Default", "OTP", otp);
                 if (!setToken.Succeeded)
                 {
@@ -208,7 +210,7 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.Repo
                 };
                 var addNotification = _context.Notification.Add(notificatiodata);
                 _context.SaveChanges();
-                return new ReturnMessage { Succeeded = true, Message = "OTP sent to your phone number.", Token = null,Role=addToRole.ToString() };
+                return new ReturnMessage { Succeeded = true, Message = "OTP sent to your  Mail Address please Verify.", Token = null,Role=addToRole.ToString() };
             }
 
             catch (Exception ex)
