@@ -25,6 +25,6 @@ namespace AustraliaSaysWebApi.DataAccess.Entity
         public string Status { get; set; } = "Pending"; 
 
         public DateTime RequestedAt { get; set; } = DateTime.UtcNow;
-        public DateTime? RespondedAt { get; set; }    // Date of acceptance/rejection
+        public DateTime? RespondedAt { get; set; }   
     }
 }
