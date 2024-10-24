@@ -60,19 +60,6 @@ namespace AustraliaSaysWebApi.Controllers
                     return BadRequest(result);
                 }
                 return Ok(result);
-                //// Exclude users who already have pending or accepted friend requests with the sender
-                //var excludedUserIds = await .FriendRequests
-                //    .Where(fr => fr.SenderId == senderId || fr.ReceiverId == senderId)
-                //    .Select(fr => fr.SenderId == senderId ? fr.ReceiverId : fr.SenderId)
-                //    .ToListAsync();
-
-                //// Get random users excluding the sender and users already requested
-                //var randomUsers = await _db.Users
-                //    .Where(u => u.Id != senderId && !excludedUserIds.Contains(u.Id))
-                //    .OrderBy(r => Guid.NewGuid()) // Randomize the result
-                //    .ToListAsync();
-
-                //return Ok(randomUsers);
             }
             catch (Exception)
             {
