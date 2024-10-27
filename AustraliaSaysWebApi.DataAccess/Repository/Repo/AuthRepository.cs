@@ -41,7 +41,7 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.Repo
         public async Task<ReturnMessage> Login(string email, string password)
         {
             var user = await _userManager.FindByEmailAsync(email);
-            if (email == null)
+            if (user == null)
             {
                 return new ReturnMessage { Succeeded = false, Message = "Invalid email provided. Please ensure that you have entered a valid email address." };
             }

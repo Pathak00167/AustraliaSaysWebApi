@@ -73,9 +73,16 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.Repo
             try
             {
                 // Get all users excluding the sender
+                var excludedUserIds = await _context.FriendRequests
+                .Where(fr => (fr.SenderId == senderId || fr.ReceiverId == senderId)
+                             && (fr.Status == "Pending" || fr.Status == "Accepted"))
+                .Select(fr => fr.SenderId == senderId ? fr.ReceiverId : fr.SenderId)
+                .ToListAsync();
+
+                // Fetch all users except the sender and those involved in a friend request
                 var allUsers = await _context.Users
-                    .Where(u => u.Id != senderId)
-                    .OrderBy(r => Guid.NewGuid()) // Randomize the result (optional)
+                    .Where(u => u.Id != senderId && !excludedUserIds.Contains(u.Id))
+                    .OrderBy(r => Guid.NewGuid())  // Optional: shuffle the result set
                     .ToListAsync();
 
                 return allUsers;
