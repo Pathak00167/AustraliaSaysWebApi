@@ -62,9 +62,25 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.Repo
                 }
 
                 // If a profile picture is uploaded, process and save it
-                if (userProfile.UserProfilePicture != null)
+                if (userProfile.UserProfilePicture != null &&userProfile !=null)
                 {
-                   
+                    string uploadsFolder = Path.Combine(_hostingEnvironment.WebRootPath, "uploads");
+                    if (!Directory.Exists(uploadsFolder))
+                    {
+                        Directory.CreateDirectory(uploadsFolder);
+                    }
+
+                    // Generate a unique filename for the image
+                    string uniqueFileName = Guid.NewGuid().ToString() + "_" + userProfile.UserProfilePicture.FileName;
+                    string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                    // Save the image to the uploads folder
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await userProfile.UserProfilePicture.CopyToAsync(fileStream);
+                    }
+                    string relativePath = Path.Combine("uploads", uniqueFileName);
+                    user.ProfilePicture = relativePath;
                 }
 
                 // Update user in database

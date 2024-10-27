@@ -1,6 +1,7 @@
 ﻿using AustraliaSaysWebApi.DataAccess.DTOs;
 using AustraliaSaysWebApi.DataAccess.Entity;
 using AustraliaSaysWebApi.DataAccess.Repository.IRepo;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -8,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AustraliaSaysWebApi.Controllers
 {
+    [Authorize(Roles = "User")]
     [Route("api/[controller]")]
     [ApiController]
     public class FriendRequestController : ControllerBase

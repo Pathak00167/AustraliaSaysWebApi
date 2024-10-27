@@ -2,6 +2,7 @@ using AustraliaSaysWebApi.DataAccess.Data;
 using AustraliaSaysWebApi.DataAccess.Entity;
 using AustraliaSaysWebApi.DataAccess.Repository.IRepo;
 using AustraliaSaysWebApi.DataAccess.Repository.Repo;
+using AustraliaSaysWebApi.Utility.Services;
 using EcomWeb.Utility.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -84,6 +85,7 @@ var key = Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]);
 
 // Register the email service
 builder.Services.AddSingleton<IEmailService, EmailService>();
+builder.Services.AddSingleton<ChatHub, ChatHub>();
 
 // Configure SMTP settings from configuration
 var smtpSettings = builder.Configuration.GetSection("SmtpSettings");
@@ -128,10 +130,12 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseCors("AllowAll");
 app.UseAuthentication(); // Added authentication middleware
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<ChatHub>("/hub");
 
 app.Run();
