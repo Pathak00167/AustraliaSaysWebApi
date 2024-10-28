@@ -48,7 +48,7 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.Repo
 
             if (existingRequest != null)
             {
-                return new ConflictObjectResult("Friend request already exists.");
+                 return new ConflictObjectResult("Friend request already exists.");
             }
             var sendrequest = new FriendRequest()
             {
