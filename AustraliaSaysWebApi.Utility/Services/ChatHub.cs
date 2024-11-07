@@ -13,5 +13,10 @@ namespace AustraliaSaysWebApi.Utility.Services
         {
             await Clients.User(receiverUserId).SendAsync("ReceiveNotification", message);
         }
+
+        public async Task AcceptNotification(string senderUserId, string message)
+        {
+            await Clients.User(senderUserId).SendAsync("ReceiveNotification", message);
+        }
     }
 }

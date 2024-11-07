@@ -11,7 +11,11 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.IRepo
 {
     public interface IFriendRequestRepository
     {
-        Task<IActionResult> SendFriendRequestAsync(SendFriendRequest request);
+        Task<IActionResult> SendFriendRequestAsync(FriendRequestDto request);
+        Task<IActionResult> AcceptFriendRequestAsync(FriendRequestDto request);
+        Task<IActionResult> RejectFriendRequestAsync(FriendRequestDto request);
+        Task<IActionResult> CancelFriendRequestAsync(FriendRequestDto request);
+        //Task<List<ApplicationUser>> PendingRequestsAsync(string userId);
         Task<List<ApplicationUser>> GetAllUsersExceptSenderAsync(string senderId);
     }
 }
