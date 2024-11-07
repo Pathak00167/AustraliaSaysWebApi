@@ -26,7 +26,7 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.Repo
             _hubContext = hubContext;
         }
 
-        public async Task<IActionResult> SendFriendRequestAsync(SendFriendRequest request)
+        public async Task<IActionResult> SendFriendRequestAsync(FriendRequestDto request)
         {
             // Check if both the sender and receiver exist
             var senderExists = await _context.Users.AnyAsync(u => u.Id == request.SenderId);
@@ -67,6 +67,128 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.Repo
             return new OkObjectResult("Friend request sent successfully.");
         }
 
+        public async Task<IActionResult> AcceptFriendRequestAsync(FriendRequestDto request)
+        {
+            // Check if both the sender and receiver exist
+            var senderExists = await _context.Users.AnyAsync(u => u.Id == request.SenderId);
+            var receiverExists = await _context.Users.AnyAsync(u => u.Id == request.ReceiverId);
+
+            if (!senderExists)
+            {
+                return new NotFoundObjectResult("Sender does not exist.");
+            }
+
+            if (!receiverExists)
+            {
+                return new NotFoundObjectResult("Receiver does not exist.");
+            }
+
+            // Check if a friend request already exists between these users
+            var existingRequest = await _context.FriendRequests
+                .FirstOrDefaultAsync(fr => fr.SenderId == request.SenderId && fr.ReceiverId == request.ReceiverId);
+
+            if (existingRequest == null)
+            {
+                return new ConflictObjectResult("User has cancelled his request");
+            }
+          
+            existingRequest.Status = "Accepted";
+            existingRequest.RespondedAt= DateTime.UtcNow;
+            // Save the friend request
+            _context.FriendRequests.Update(existingRequest);
+            await _context.SaveChangesAsync();
+
+            // Optionally send a SignalR notification to the receiver
+            await _hubContext.Clients.User(request.ReceiverId).SendAsync("ReceiveFriendRequest", request.SenderId);
+
+            return new OkObjectResult($"Your request is accepted by {existingRequest.Receiver.FirstName}");
+        }
+
+        public async Task<IActionResult> RejectFriendRequestAsync(FriendRequestDto request)
+        {
+            // Check if both the sender and receiver exist
+            var senderExists = await _context.Users.AnyAsync(u => u.Id == request.SenderId);
+            var receiverExists = await _context.Users.AnyAsync(u => u.Id == request.ReceiverId);
+
+            if (!senderExists)
+            {
+                return new NotFoundObjectResult("Sender does not exist.");
+            }
+
+            if (!receiverExists)
+            {
+                return new NotFoundObjectResult("Receiver does not exist.");
+            }
+
+            // Check if a friend request already exists between these users
+            var existingRequest = await _context.FriendRequests
+                .FirstOrDefaultAsync(fr => fr.SenderId == request.SenderId && fr.ReceiverId == request.ReceiverId);
+
+            if (existingRequest == null)
+            {
+                return new ConflictObjectResult("User has cancelled his request");
+            }
+            existingRequest.Status = "Rejected";
+            existingRequest.RespondedAt = DateTime.UtcNow;
+            // Save the friend request
+            _context.FriendRequests.Update(existingRequest);
+            await _context.SaveChangesAsync();
+
+            // Optionally send a SignalR notification to the receiver
+            await _hubContext.Clients.User(request.ReceiverId).SendAsync("ReceiveFriendRequest", request.SenderId);
+
+            return new OkObjectResult($"Your request is Declined by {existingRequest.Receiver.FirstName}");
+        }
+
+        public async Task<IActionResult> CancelFriendRequestAsync(FriendRequestDto request)
+        {
+            // Check if both the sender and receiver exist
+            var senderExists = await _context.Users.AnyAsync(u => u.Id == request.SenderId);
+            var receiverExists = await _context.Users.AnyAsync(u => u.Id == request.ReceiverId);
+
+            if (!senderExists)
+            {
+                return new NotFoundObjectResult("Sender does not exist.");
+            }
+
+            if (!receiverExists)
+            {
+                return new NotFoundObjectResult("Receiver does not exist.");
+            }
+
+            // Check if a friend request already exists between these users
+            var existingRequest = await _context.FriendRequests
+                .FirstOrDefaultAsync(fr => fr.SenderId == request.SenderId && fr.ReceiverId == request.ReceiverId);
+
+            if (existingRequest == null)
+            {
+                return new ConflictObjectResult("Request Not Found");
+            }
+           
+            // Save the friend request
+            _context.FriendRequests.Remove(existingRequest);
+            await _context.SaveChangesAsync();
+
+            await _hubContext.Clients.User(request.ReceiverId).SendAsync("ReceiveNotification",
+        $"Your friend request from {existingRequest.Sender.FirstName} was canceled.");
+
+            return new OkObjectResult($"Your request is canceled by {existingRequest.Receiver.FirstName}");
+        }
+
+        //public async Task<List<ApplicationUser>> PendingRequestsAsync(string userId)
+        //{
+        //    try
+        //    {
+        //        // Get all users excluding the sender
+        //       var pendingrequests=await _context.FriendRequests.FindAsync(fr => fr.ReceiverId==userId )
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        // Log or handle the exception accordingly
+        //        throw new Exception("An error occurred while fetching users.", ex);
+        //    }
+        //}
+
 
         public async Task<List<ApplicationUser>> GetAllUsersExceptSenderAsync(string senderId)
         {
@@ -82,7 +204,7 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.Repo
                 // Fetch all users except the sender and those involved in a friend request
                 var allUsers = await _context.Users
                     .Where(u => u.Id != senderId && !excludedUserIds.Contains(u.Id))
-                    .OrderBy(r => Guid.NewGuid())  // Optional: shuffle the result set
+                    .OrderBy(r => Guid.NewGuid())  
                     .ToListAsync();
 
                 return allUsers;

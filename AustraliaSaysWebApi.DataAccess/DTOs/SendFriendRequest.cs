@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace AustraliaSaysWebApi.DataAccess.DTOs
 {
-    public class SendFriendRequest
+    public class FriendRequestDto
     {
         public string SenderId { get; set; }
         public string ReceiverId { get; set; }
