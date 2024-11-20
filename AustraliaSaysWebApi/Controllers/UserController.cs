@@ -160,24 +160,29 @@ namespace AustraliaSaysWebApi.Controllers
             }
         }
 
-        //[HttpGet("Pending-Request/{userId}")]
-        //public async Task<IActionResult> PendingRequests(string userId)
-        //{
-        //    try
-        //    {
-        //        if(!ModelState.IsValid)
-        //        {
-        //            return BadRequest("Invalid request.Please Verify Before Send");
-        //        }
+        [HttpGet("Pending-Request/{userId}")]
+        public  IActionResult PendingRequests(string userId)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest("Invalid request.Please Verify Before Send");
+                }
+                var findrequest=_unitOfWork.FriendRequest.PendingRequestsAsync(userId);
+                if (findrequest ==  null)
+                {
+                    return BadRequest();
+                }
+                return Ok(findrequest);
 
+            }
+            catch (Exception)
+            {
 
-        //    }
-        //    catch (Exception)
-        //    {
-
-        //        throw;
-        //    }
-        //}
+                throw;
+            }
+        }
         #endregion
 
         #region Chat Section
