@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -175,19 +176,26 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.Repo
             return new OkObjectResult($"Your request is canceled by {existingRequest.Receiver.FirstName}");
         }
 
-        //public async Task<List<ApplicationUser>> PendingRequestsAsync(string userId)
-        //{
-        //    try
-        //    {
-        //        // Get all users excluding the sender
-        //       var pendingrequests=await _context.FriendRequests.FindAsync(fr => fr.ReceiverId==userId )
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        // Log or handle the exception accordingly
-        //        throw new Exception("An error occurred while fetching users.", ex);
-        //    }
-        //}
+        public List<ApplicationUser> PendingRequestsAsync(string userId)
+        {
+            try
+            {
+                var pendingUsers = _context.FriendRequests
+                    .Where(x => x.ReceiverId == userId && x.Status == "Pending")
+                    .Join(_context.Users,
+                          friendRequest => friendRequest.SenderId,
+                          user => user.Id,
+                          (friendRequest, user) => user)
+                    .ToList();
+
+                return pendingUsers;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("An error occurred while fetching pending friend requests.", ex);
+            }
+        }
+
 
 
         public async Task<List<ApplicationUser>> GetAllUsersExceptSenderAsync(string senderId)

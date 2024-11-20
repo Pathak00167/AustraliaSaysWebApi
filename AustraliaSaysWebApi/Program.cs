@@ -29,7 +29,7 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "ChatApp API", Version = "v1" });
 
-    // Add JWT token authentication configuration to Swagger
+   
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
@@ -58,9 +58,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionstring, sqlServerOptionsAction: sqlOptions =>
     {
         sqlOptions.EnableRetryOnFailure(
-            maxRetryCount: 5, // Number of retry attempts
-            maxRetryDelay: TimeSpan.FromSeconds(30), // Delay between retries
-            errorNumbersToAdd: null // Add specific SQL error numbers to retry on
+            maxRetryCount: 5, 
+            maxRetryDelay: TimeSpan.FromSeconds(30),
+            errorNumbersToAdd: null
         );
     }));
 
