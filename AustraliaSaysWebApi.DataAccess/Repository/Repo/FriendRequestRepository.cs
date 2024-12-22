@@ -63,7 +63,8 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.Repo
             await _context.SaveChangesAsync();
 
             // Optionally send a SignalR notification to the receiver
-            await _hubContext.Clients.User(request.ReceiverId).SendAsync("ReceiveFriendRequest", request.SenderId);
+            await _hubContext.Clients.User(request.ReceiverId).SendAsync("ReceiveFriendRequest By this User", request.SenderId);
+            
 
             return new OkObjectResult("Friend request sent successfully.");
         }
