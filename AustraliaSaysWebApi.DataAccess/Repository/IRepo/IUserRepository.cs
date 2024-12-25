@@ -12,6 +12,7 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.IRepo
     {
         #region ProfileSection Interfaces
         Task<ReturnMessage> UpdateUserProfileAsync(UpdateUserProfile userProfile);
+        
         #endregion
 
         #region ChatEnd Interfaces

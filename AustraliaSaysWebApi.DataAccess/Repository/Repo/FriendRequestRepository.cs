@@ -27,6 +27,9 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.Repo
             _hubContext = hubContext;
         }
 
+        #endregion
+
+        #region FriendRequestMethods
         public async Task<IActionResult> SendFriendRequestAsync(FriendRequestDto request)
         {
             // Check if both the sender and receiver exist
@@ -49,14 +52,14 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.Repo
 
             if (existingRequest != null)
             {
-                 return new ConflictObjectResult("Friend request already exists.");
+                return new ConflictObjectResult("Friend request already exists.");
             }
             var sendrequest = new FriendRequest()
             {
-               SenderId = request.SenderId,
-               ReceiverId = request.ReceiverId,
+                SenderId = request.SenderId,
+                ReceiverId = request.ReceiverId,
                 Status = "Pending"
-                
+
             };
             // Save the friend request
             _context.FriendRequests.Add(sendrequest);
@@ -64,7 +67,7 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.Repo
 
             // Optionally send a SignalR notification to the receiver
             await _hubContext.Clients.User(request.ReceiverId).SendAsync("ReceiveFriendRequest By this User", request.SenderId);
-            
+
 
             return new OkObjectResult("Friend request sent successfully.");
         }
@@ -93,17 +96,17 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.Repo
             {
                 return new ConflictObjectResult("User has cancelled his request");
             }
-          
+
             existingRequest.Status = "Accepted";
-            existingRequest.RespondedAt= DateTime.UtcNow;
+            existingRequest.RespondedAt = DateTime.UtcNow;
             // Save the friend request
             _context.FriendRequests.Update(existingRequest);
             await _context.SaveChangesAsync();
 
             // Optionally send a SignalR notification to the receiver
-            await _hubContext.Clients.User(request.ReceiverId).SendAsync("ReceiveFriendRequest", request.SenderId);
+            await _hubContext.Clients.User(request.ReceiverId).SendAsync("Freiend Request Accepted", request.SenderId);
 
-            return new OkObjectResult($"Your request is accepted by {existingRequest.Receiver.FirstName}");
+            return new OkObjectResult("Friend request Accepted successfully.");
         }
 
         public async Task<IActionResult> RejectFriendRequestAsync(FriendRequestDto request)
@@ -139,7 +142,7 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.Repo
             // Optionally send a SignalR notification to the receiver
             await _hubContext.Clients.User(request.ReceiverId).SendAsync("ReceiveFriendRequest", request.SenderId);
 
-            return new OkObjectResult($"Your request is Declined by {existingRequest.Receiver.FirstName}");
+            return new OkObjectResult("Friend request Accepted successfully.");
         }
 
         public async Task<IActionResult> CancelFriendRequestAsync(FriendRequestDto request)
@@ -166,7 +169,7 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.Repo
             {
                 return new ConflictObjectResult("Request Not Found");
             }
-           
+
             // Save the friend request
             _context.FriendRequests.Remove(existingRequest);
             await _context.SaveChangesAsync();
@@ -213,7 +216,7 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.Repo
                 // Fetch all users except the sender and those involved in a friend request
                 var allUsers = await _context.Users
                     .Where(u => u.Id != senderId && !excludedUserIds.Contains(u.Id))
-                    .OrderBy(r => Guid.NewGuid())  
+                    .OrderBy(r => Guid.NewGuid())
                     .ToListAsync();
 
                 return allUsers;
@@ -224,8 +227,8 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.Repo
                 throw new Exception("An error occurred while fetching users.", ex);
             }
         }
-
-
         #endregion
+
+       
     }
 }
