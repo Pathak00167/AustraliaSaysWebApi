@@ -41,6 +41,24 @@ namespace AustraliaSaysWebApi.Controllers
 
             return Ok(new { result.Message });
         }
+
+        [HttpGet("Get-UserProfile")]
+        public  IActionResult GetUserById(string userId)
+        {
+            try
+            {
+                if(string.IsNullOrEmpty(userId))
+                {
+                    return BadRequest(ModelState);
+                }
+                return Ok();
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
         #endregion
 
         #region FriendRequestEndpoints
