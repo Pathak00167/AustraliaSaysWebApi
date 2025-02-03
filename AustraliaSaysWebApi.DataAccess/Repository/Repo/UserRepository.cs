@@ -2,8 +2,12 @@
 using AustraliaSaysWebApi.DataAccess.DTOs;
 using AustraliaSaysWebApi.DataAccess.Entity;
 using AustraliaSaysWebApi.DataAccess.Repository.IRepo;
+using AustraliaSaysWebApi.Utility.Services;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,14 +23,56 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.Repo
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _hostingEnvironment;
+        private readonly IHubContext<ChatHub> _hubContext;
         public UserRepository(UserManager<ApplicationUser> userManager,SignInManager<ApplicationUser> signInManager
-            ,ApplicationDbContext context,IWebHostEnvironment hostEnvironment)
+            ,ApplicationDbContext context,IWebHostEnvironment hostEnvironment, IHubContext<ChatHub> hubContext)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _context = context;
             _hostingEnvironment = hostEnvironment;
+            _hubContext = hubContext;
         }
+
+        public ApplicationUser GetUserProfile(string userId)
+        {
+            try
+            {
+                // Retrieve user by Id from the ApplicationUser table
+                var user = _context.Users.FirstOrDefault(u => u.Id == userId);
+
+                if (user == null)
+                {
+                    throw new Exception("User not found");
+                }
+
+                return user;
+            }
+            catch (Exception ex)
+            {
+                // Handle or log the exception as needed
+                throw new Exception($"Error retrieving user profile: {ex.Message}", ex);
+            }
+        }
+
+        public async Task<List<ApplicationUser>> GetAcceptedFriendsAsync(string userId)
+        {
+            // Get users who have accepted requests (either sent or received by the user)
+            return await _context.FriendRequests
+                .Where(fr => (fr.SenderId == userId) && fr.Status == "Accepted")
+                .Select(fr => fr.SenderId == userId ? fr.Receiver : fr.Sender)
+                .Select(user => new ApplicationUser
+                {
+                    Id = user.Id,
+                    UserName = user.UserName,
+                    FirstName = user.FirstName,  // Assuming you have FirstName property
+                    Email = user.Email,
+                    ProfilePicture = user.ProfilePicture // Assuming this property exists
+                })
+                .ToListAsync();
+        }
+
+
         #endregion
 
         public async Task<ReturnMessage> UpdateUserProfileAsync(UpdateUserProfile userProfile)
@@ -101,7 +147,35 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.Repo
             }
         }
 
-      
+        public async Task<ReturnMessage> ChatRoomAsync(ChatRoomDto chatRoom)
+        {
+            try
+            {
+                var findFriend = await _context.FriendRequests
+     .FirstOrDefaultAsync(f => f.SenderId == chatRoom.SenderId ||f.SenderId ==chatRoom.ReceiverId && f.ReceiverId == chatRoom.ReceiverId
+     ||f.ReceiverId==f.SenderId &&f.Status == "Accepted");
+                if(findFriend == null)
+                {
+                     return new ReturnMessage { Succeeded = false, Message = "Sorry, Currently You are not able to send messages" };
+                }
+                var message = new ChatMessage()
+                {
+                    SenderId = chatRoom.SenderId,
+                    ReceiverId = chatRoom.ReceiverId,
+                    Content = chatRoom.Content,
+                    IsRead = false,
+                    Timestamp = DateTime.Now,
+                };
+                await _context.ChatMessages.AddAsync(message);
+                await _context.SaveChangesAsync();
+                await _hubContext.Clients.User(chatRoom.ReceiverId).SendAsync("ReceiveMessage", chatRoom.SenderId, chatRoom.Content);
+                return new ReturnMessage { Succeeded = true, Message = "Message Sent" };
+            }
+            catch (Exception)
+            {
 
+                throw;
+            }
+        }
     }
 }

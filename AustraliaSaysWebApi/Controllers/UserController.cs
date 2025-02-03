@@ -42,16 +42,46 @@ namespace AustraliaSaysWebApi.Controllers
             return Ok(new { result.Message });
         }
 
-        [HttpGet("Get-UserProfile")]
-        public  IActionResult GetUserById(string userId)
+        [HttpGet("Get-UserProfile/{userId}")]
+        public IActionResult GetUserById(string userId)
         {
             try
             {
-                if(string.IsNullOrEmpty(userId))
+                if (string.IsNullOrEmpty(userId))
                 {
                     return BadRequest(ModelState);
                 }
-                return Ok();
+
+                var result = _unitOfWork.User.GetUserProfile(userId);
+                if (result == null)
+                {
+                    return BadRequest(result);
+                }
+                return Ok(result);
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
+
+        [HttpGet("Get-UserFriends/{userId}")]
+        public async Task<IActionResult> GetUserFriends(string userId)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var result = await _unitOfWork.User.GetAcceptedFriendsAsync(userId);
+                if (result == null)
+                {
+                    return BadRequest(result);
+                }
+                return Ok(result);
             }
             catch (Exception)
             {
@@ -179,7 +209,7 @@ namespace AustraliaSaysWebApi.Controllers
         }
 
         [HttpGet("Pending-Request/{userId}")]
-        public  IActionResult PendingRequests(string userId)
+        public IActionResult PendingRequests(string userId)
         {
             try
             {
@@ -187,8 +217,8 @@ namespace AustraliaSaysWebApi.Controllers
                 {
                     return BadRequest("Invalid request.Please Verify Before Send");
                 }
-                var findrequest=_unitOfWork.FriendRequest.PendingRequestsAsync(userId);
-                if (findrequest ==  null)
+                var findrequest = _unitOfWork.FriendRequest.PendingRequestsAsync(userId);
+                if (findrequest == null)
                 {
                     return BadRequest();
                 }
@@ -204,7 +234,28 @@ namespace AustraliaSaysWebApi.Controllers
         #endregion
 
         #region Chat Section
+        [HttpPost("Chat-Room")]
+        public async Task<IActionResult> ChatRoom([FromBody] ChatRoomDto chatRoom)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest("Invalid request.Please Verify Before Send");
+                }
+                var result=await _unitOfWork.User.ChatRoomAsync(chatRoom);
+                if (result == null)
+                {
+                    return BadRequest(result);
+                }
+                return Ok(result);
+            }
+            catch (Exception)
+            {
 
+                throw;
+            }
+        }
         #endregion
 
     }

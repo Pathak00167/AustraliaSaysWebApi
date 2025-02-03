@@ -39,7 +39,7 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.Repo
             _hubContext = hubContext;
             Auth = new AuthRepository(_userManager, _signInManager, _hostingEnvironment, _jwtService,_dbcontext,_emailService);
             Admin = new AdminRepository(_dbcontext,_userManager,_hostingEnvironment);
-            User = new UserRepository(_userManager, _signInManager, _dbcontext, _hostingEnvironment);
+            User = new UserRepository(_userManager, _signInManager, _dbcontext, _hostingEnvironment, _hubContext);
             FriendRequest=new FriendRequestRepository(_dbcontext,_hubContext);
 
 

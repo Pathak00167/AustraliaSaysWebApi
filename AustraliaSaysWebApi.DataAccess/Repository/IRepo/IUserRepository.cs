@@ -1,4 +1,5 @@
 ﻿using AustraliaSaysWebApi.DataAccess.DTOs;
+using AustraliaSaysWebApi.DataAccess.Entity;
 using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
@@ -12,11 +13,12 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.IRepo
     {
         #region ProfileSection Interfaces
         Task<ReturnMessage> UpdateUserProfileAsync(UpdateUserProfile userProfile);
-        
+        ApplicationUser GetUserProfile(string userId);
+        Task<List<ApplicationUser>> GetAcceptedFriendsAsync(string userId);
         #endregion
 
         #region ChatEnd Interfaces
-
+        Task<ReturnMessage> ChatRoomAsync(ChatRoomDto chatRoom);
         #endregion
 
     }
