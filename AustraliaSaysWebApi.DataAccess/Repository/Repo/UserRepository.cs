@@ -126,7 +126,7 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.Repo
                         await userProfile.UserProfilePicture.CopyToAsync(fileStream);
                     }
                     string relativePath = Path.Combine("uploads", uniqueFileName);
-                    user.ProfilePicture = relativePath;
+                    user.ProfilePicture = relativePath; 
                 }
 
                 // Update user in database
