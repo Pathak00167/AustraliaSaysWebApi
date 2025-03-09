@@ -1,6 +1,7 @@
 ﻿using AustraliaSaysWebApi.DataAccess.Data;
 using AustraliaSaysWebApi.DataAccess.DTOs;
 using AustraliaSaysWebApi.DataAccess.Entity;
+using AustraliaSaysWebApi.DataAccess.Models;
 using AustraliaSaysWebApi.DataAccess.Repository.IRepo;
 using EcomWeb.Utility.Services;
 using Microsoft.AspNetCore.Hosting;
@@ -69,7 +70,17 @@ namespace AustraliaSaysWebApi.DataAccess.Repository.Repo
                     Succeeded = true,
                     Message = "Login Successful",
                     Token = token,
-                    Role = userRole
+                    Role = userRole,
+                    Data= new UserInfo
+                    {
+                        UserName = user.UserName,
+                        Email = user.Email,
+                        Bio= user.Bio,
+                        ProfilePicture= user.ProfilePicture,
+                        FirstName= user.FirstName,
+                        LastName= user.LastName,
+                        PhoneNumber= user.PhoneNumber,
+                    }
                 };
             }
             else
