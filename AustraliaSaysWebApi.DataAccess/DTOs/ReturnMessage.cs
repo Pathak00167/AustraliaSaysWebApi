@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AustraliaSaysWebApi.DataAccess.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,5 +13,6 @@ namespace AustraliaSaysWebApi.DataAccess.DTOs
         public string? Message { get; set; }
         public string? Token { get; set; }
         public string? Role { get; set; }
+        public UserInfo? Data { get; set; }
     }
 }
